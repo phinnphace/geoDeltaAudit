@@ -1,13 +1,32 @@
 Package: geoDeltaAudit
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Title: Quantifying Variable Change Induced by Administrative Boundary Transformations
+Version: 0.1.0
+Authors@R:
+    person(
+      "Phinn", "Markson",
+      email = "markson.2@osu.edu",
+      role = c("aut", "cre")
+    )
+Description:
+    Tools for auditing how analytic variables change when data are transformed
+    across administrative boundary systems. The package is agnostic to data
+    source, variable type, and administrative geography, and is designed to
+    quantify transformation-induced change without attributing blame to any
+    specific boundary definition or allocation scheme.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Suggests: 
+    knitr,
+    readr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Imports: 
+    dplyr,
+    janitor,
+    rlang,
+    stringr,
+    tibble
+VignetteBuilder: knitr
