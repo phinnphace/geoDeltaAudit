@@ -2,5 +2,6 @@
 
 export(audit_transform)
 export(clean_geo_headers)
+export(prep_hud_crosswalk)
 export(step_zcta_to_zip_equal)
 export(step_zip_to_county_totratio)

@@ -6,99 +6,25 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-```{r setup, include=FALSE}
+
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-    echo = TRUE,
-    fig.width = 7,
-    fig.height = 5,
-    dpi = 300,
-    fig.align = "center",
-    out.width = "100%"
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 7,
+  fig.height = 5,
+  dpi = 300,
+  fig.align = "center",
+  out.width = "100%"
 )
-library(sf)
-library(dplyr)
-library(ggplot2)
-library(stringr)
-library(readr)
 ```
-## Load Toy Baseline Data
-This makes the vignette portable by loading data from the installed package.
-```{r load-toy-data, include=FALSE}
-acs_path <- system.file("extdata", "toy_acs_zcta_hennepin.csv", package = "geoDeltaAudit")
-stopifnot(nchar(acs_path) > 0)
-acs <- read_csv(acs_path, show_col_types = FALSE) %>%
-    mutate(zcta = str_pad(as.character(zcta), 5, pad = "0"))
+
+```{r hennepin-figures, echo=FALSE}
+knitr::include_graphics("baseline_hennepin.png")
+knitr::include_graphics("hennepin_relationship.png")
 ```
-## Load TIGER/Line Shapes
-Users need to download these shapefiles locally.
-```{r load-shapes, include=FALSE}
-county_dir <- "/Users/phinnmarkson/Desktop/Spring_Semester/tl_2022_us_county"
-zcta_dir <- "/Users/phinnmarkson/Desktop/Spring_Semester/tl_2020_us_zcta510"
-counties <- st_read(file.path(county_dir, "tl_2022_us_county.shp"), quiet = TRUE)
-zctas <- st_read(file.path(zcta_dir, "tl_2020_us_zcta510.shp"), quiet = TRUE)
-hennepin <- counties %>% filter(STATEFP == "27", COUNTYFP == "053")
-zctas <- st_transform(zctas, st_crs(hennepin))
-# Geometry intersection set (94)
-zctas_94 <- zctas[st_intersects(zctas, hennepin, sparse = FALSE), ]
-# Relationship membership baseline set (74)
-zctas_74 <- zctas %>% filter(ZCTA5CE10 %in% acs$zcta)
-# Geometry-only extras (20)
-extra_20 <- zctas_94 %>% filter(!(ZCTA5CE10 %in% zctas_74$ZCTA5CE10))
-```
-## Plot 1: Baseline Membership
-This plot shows the 74 ZCTAs used in the baseline analysis with relationship-based membership.
-```{r fig-baseline-membership}
-p1 <- ggplot() +
-    geom_sf(data = zctas_74, alpha = 0.35, fill = "lightblue") +
-    geom_sf(data = hennepin, fill = NA, linewidth = 1) +
-    coord_sf(expand = FALSE) +
-    theme_minimal() +
-    theme(
-        plot.margin = margin(2, 2, 2, 2, "mm"),
-        plot.title.position = "plot",
-        plot.title = element_text(margin = margin(b = 5)),
-        plot.subtitle = element_text(margin = margin(b = 10))
-    ) +
-    labs(
-        title = "Hennepin County: ZCTAs Used in Baseline (n=74)",
-        subtitle = "ZCTA membership defined by relationship-based inclusion"
-    )
-print(p1)
-```
-## Plot 1: Baseline Membership
-This plot shows the 74 ZCTAs used in the baseline analysis with relationship-based membership.
-```{r fig-discrepancy}
-p2 <- ggplot() +
-    geom_sf(data = zctas_74, fill = NA, linewidth = 0.25) +
-    geom_sf(data = extra_20, linewidth = 0.25, fill = "grey60") +
-    geom_sf(data = hennepin, fill = NA, linewidth = 1.0) +
-    coord_sf(expand = FALSE) +
-    theme_minimal() +
-    theme(
-        plot.margin = margin(2, 2, 2, 2, "mm"),
-        plot.title.position = "plot",
-        plot.title = element_text(margin = margin(b = 5)),
-        plot.subtitle = element_text(margin = margin(b = 10)),
-        plot.caption = element_text(margin = margin(t = 10))
-    ) +
-    labs(
-        title = "Hennepin County: Geometry vs Relationship Membership",
-        subtitle = paste0(
-            "Geometric intersection: ", nrow(zctas_94),
-            " | Relationship baseline: ", nrow(zctas_74),
-            " | Geometry-only: ", nrow(extra_20)
-        ),
-        caption = "Grey polygons: appear only under geometric intersection"
-    )
-print(p2)
-```
-## Plot 2: Geometry vs Relationship Discrepancy
-This plot highlights the difference between geometric intersection and relationship-based membership.
-```{r save-pngs, eval=TRUE, include=FALSE}
-dir.create("man/figures", showWarnings = FALSE, recursive = TRUE)
-ggsave("man/figures/ZCTA_Membership.png", plot = p1, width = 7, height = 5, dpi = 300)
-ggsave("man/figures/HennepinZCTABaseline.png", plot = p2, width = 7, height = 5, dpi = 300)
-```
+
 ## Summary
 These visualizations demonstrate:
 1. **Baseline ZCTAs**: The 74 ZCTAs with relationship-based membership to Hennepin County

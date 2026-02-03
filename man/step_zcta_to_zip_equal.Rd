@@ -9,9 +9,9 @@ step_zcta_to_zip_equal(assoc, zcta_col = "zcta", zip_col = "zip")
 \arguments{
 \item{assoc}{A data frame containing ZCTA-ZIP associations.}
 
-\item{zcta_col}{Column name in \code{assoc} containing ZCTA IDs.}
+\item{zcta_col}{Column name in \code{assoc} containing ZCTA IDs (ignored if clean_geo_headers matches).}
 
-\item{zip_col}{Column name in \code{assoc} containing ZIP IDs.}
+\item{zip_col}{Column name in \code{assoc} containing ZIP IDs (ignored if clean_geo_headers matches).}
 }
 \value{
 A step function suitable for \code{audit_transform()}.

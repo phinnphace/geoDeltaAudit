@@ -22,10 +22,11 @@ The goal of geoDeltaAudit is to ...
 
 ## Installation
 
-You can install the development version of geoDeltaAudit like so:
+You can install the development version of geoDeltaAudit from [GitHub](https://github.com/) with:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+# install.packages("pak")
+pak::pak("phinnphace/geoDeltaAudit")
 ```
 
 ## Example

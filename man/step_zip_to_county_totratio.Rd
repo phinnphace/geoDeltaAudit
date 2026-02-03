@@ -14,11 +14,11 @@ step_zip_to_county_totratio(
 \arguments{
 \item{hud}{A data frame containing ZIP-to-county weights.}
 
-\item{zip_col}{Column name for ZIP.}
+\item{zip_col}{Column name for ZIP (kept for API symmetry; cleaning is robust).}
 
-\item{county_col}{Column name for county (FIPS).}
+\item{county_col}{Column name for county (FIPS) (kept for API symmetry).}
 
-\item{weight_col}{Column name for the weight (default TOT_RATIO).}
+\item{weight_col}{Column name for the weight (default "tot_ratio") (kept for API symmetry).}
 }
 \value{
 A step function suitable for \code{audit_transform()}.
