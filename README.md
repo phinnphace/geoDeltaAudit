@@ -3,51 +3,52 @@
 
 # geoDeltaAudit
 
-<!-- badges: start -->
+Geographic crosswalks are directional allocations, not inverses.  
+`geoDeltaAudit` helps quantify how much a variable changes *purely* due
+to boundary translation and allocation rules (pathway dependence).
 
-<!-- badges: end -->
+## What it does
 
-The goal of geoDeltaAudit is to …
+- Defines step functions for common geographic transformations (e.g.,
+  ZCTA → ZIP → county)
+- Runs an audit pipeline that reports:
+  - fan-out and loss at each step
+  - unmapped or duplicated units
+  - Δx(VAR): change induced solely by transformation choices, holding
+    the source constant
 
 ## Installation
 
-You can install the development version of geoDeltaAudit from
-[GitHub](https://github.com/) with:
-
 ``` r
-# install.packages("pak")
-pak::pak("phinnphace/geoDeltaAudit")
-```
-
+install.packages("remotes")
+remotes::install_github("phinnphace/geoDeltaAudit")
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
+
 
 ``` r
 library(geoDeltaAudit)
 ## basic example code
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+# geoDeltaAudit
 
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
+Geographic crosswalks are directional allocations, not inverses.
+`geoDeltaAudit` helps you quantify how much a variable changes purely
+due to boundary translation + allocation rules (pathway dependence).
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+## What it does
 
-You can also embed plots, for example:
+- Defines step functions for common transformations (e.g., ZCTA → ZIP,
+  ZIP → county)
+- Runs an audit pipeline that reports:
+  - fan-out / loss at each step
+  - unmapped units
+  - Δx(VAR): change induced solely by transformation choices (holding
+    the underlying source constant)
 
-<img src="man/figures/README-pressure-1.png" alt="" width="100%" />
+## Install
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+\`\`\`r install.packages(“remotes”)
+remotes::install_github(“phinnphace/geoDeltaAudit”)
