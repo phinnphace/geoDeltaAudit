@@ -1,9 +1,13 @@
-.Rproj.user
-.Rhistory
-.RData
-.httr-oauth
-.DS_Store
-.quarto
-inst/doc
-/doc/
-/Meta/
+[master 3f8859b] Initial commit: CRAN-clean (0 errors, 0 warnings, 0 notes)cat
+ 14 files changed, 553 insertions(+)
+ create mode 100644 R/zzz.R
+ create mode 100644 data-raw/process_crosswalks copyRtxt.R
+ create mode 100644 data-raw/process_crosswalks.R
+ create mode 100644 data-raw/regenerate_hennepin_maps copy.R
+ create mode 100644 inst/figures/pop_before_after_transform.jpeg
+ delete mode 100644 stepsedit.RData
+ create mode 100644 vignettes/audit_walkthrough.Rmd
+ create mode 100644 vignettes/audit_workflow.Rmd
+ create mode 100644 vignettes/introduction.Rmd
+ create mode 100644 vignettes/notes.Rmd
+ create mode 100644 vignettes/proportionality_considerations.Rmd
