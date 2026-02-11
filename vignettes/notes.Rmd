@@ -1,0 +1,32 @@
+---
+title: "introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Notes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Geographic Data Transformation Auditing: Why Variable Agnosticism Matters
+
+## The Problem in Population Health
+- Current practice treats crosswalks as neutral operations
+- No systematic assessment of data perturbation across boundaries
+- Equity implications of transformation choices ignored
+No authoritative ZCTA→ZIP crosswalk is published. For the first hop, we construct a ZCTA–ZIP association table by expanding the ZIP→ZCTA relationship file (i.e., grouping ZIPs by their assigned ZCTA). This produces a one-to-many mapping (ZCTA→{ZIPs}) that reflects common “lookup-style” workflows in applied settings.
+
+This construction does not imply bidirectionality (it is not a valid inverse crosswalk) and does not encode proportional allocation. It is used solely to quantify how a typical boundary-translation workflow can alter aggregate estimates under an explicit allocation rule.
+
+
+## Decision Points Framework
+- **Decision Point 1**: [Specific boundary alignment choice]
+- **Decision Point 2**: [Specific aggregation/distribution method]
+
+## Variable Agnosticism Design
+- Works with any continuous/categorical variable
+- Framework applicable beyond R ecosystem
+- Preserves analytical agency at each step

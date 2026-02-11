@@ -25,6 +25,7 @@ Imports:
     tibble
 Suggests: 
     knitr,
+    readr,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
