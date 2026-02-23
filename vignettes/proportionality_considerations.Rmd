@@ -1,8 +1,8 @@
 ---
-title: "proportionaility"
+title: "proportionality considerations"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Proportionality considerations}
+  %\VignetteIndexEntry{proportionality considerations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

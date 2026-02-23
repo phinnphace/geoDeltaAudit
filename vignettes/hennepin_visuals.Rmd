@@ -26,6 +26,5 @@ knitr::include_graphics("hennepin_relationship.png")
 ```
 
 ## Summary
-These visualizations demonstrate:
-1. **Baseline ZCTAs**: The 74 ZCTAs with relationship-based membership to Hennepin County
-2. **Membership Discrepancy**: The 20 additional ZCTAs that appear only under geometric intersection
+
+These visualizations demonstrate: 1. **Baseline ZCTAs**: The 74 ZCTAs with relationship-based membership to Hennepin County 2. **Membership Discrepancy**: The 20 additional ZCTAs that appear only under geometric intersection

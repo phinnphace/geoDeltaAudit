@@ -11,3 +11,6 @@
  create mode 100644 vignettes/introduction.Rmd
  create mode 100644 vignettes/notes.Rmd
  create mode 100644 vignettes/proportionality_considerations.Rmd
+.Rproj.user
+/doc/
+/Meta/

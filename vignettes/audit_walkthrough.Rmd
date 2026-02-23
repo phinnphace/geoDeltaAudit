@@ -7,56 +7,56 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  echo = TRUE,
-  message = FALSE,
-  warning = FALSE
-)
-```
+## --- vignette-only dependency (Suggests) ---
+if (!requireNamespace("readr", quietly = TRUE)) {
+  stop("Package 'readr' is required to run this vignette. Install it with install.packages('readr').")
+}
 
-## 2) Libraries (minimal)
-
-```{r libs, message=FALSE, warning=FALSE}
+# --- libraries ---
 library(geoDeltaAudit)
 library(dplyr)
 library(stringr)
 library(janitor)
-```
 
-```{r assoc-build, message=FALSE, warning=FALSE}
-## --- load toy baseline (relationship-defined) ---
+# --- toy baseline (ZCTA-level pop) ---
 acs_path <- system.file("extdata", "toy_acs_zcta_hennepin.csv", package = "geoDeltaAudit")
 stopifnot(nchar(acs_path) > 0)
 
-acs_zcta_hennepin <- readr::read_csv(acs_path, show_col_types = FALSE) %>%
-  janitor::clean_names() %>%
+acs <- readr::read_csv(acs_path, show_col_types = FALSE) |>
+  janitor::clean_names() |>
   dplyr::mutate(zcta = stringr::str_pad(as.character(.data$zcta), 5, pad = "0"))
 
-# Toy assoc: 1:1 ZCTA -> ZIP (same 5-digit IDs)
-zcta_zip_hennepin <- acs_zcta_hennepin %>%
-  dplyr::distinct(.data$zcta) %>%
-  dplyr::transmute(zcta = .data$zcta, zip = .data$zcta) %>%
+# --- toy assoc: 1:1 (ZCTA -> ZIP) ---
+assoc <- acs |>
+  dplyr::distinct(.data$zcta) |>
+  dplyr::transmute(zcta = .data$zcta, zip = .data$zcta) |>
   dplyr::distinct()
 
-assoc_structure <- zcta_zip_hennepin %>%
-  dplyr::summarise(
-    n_rows  = dplyr::n(),
-    n_zctas = dplyr::n_distinct(.data$zcta),
-    n_zips  = dplyr::n_distinct(.data$zip)
-  )
+# --- toy HUD ZIP -> county weights (TOT_RATIO) ---
+hud_path <- system.file("extdata", "toy_zip_county_hud_hennepin.csv", package = "geoDeltaAudit")
+stopifnot(nchar(hud_path) > 0)
 
-assoc_structure
-```
+hud <- readr::read_csv(hud_path, show_col_types = FALSE)
 
-### Association diagnostics
+# --- build steps + run audit ---
+steps <- list(
+  step_zcta_to_zip_equal(assoc),
+  step_zip_to_county_totratio(hud)
+)
 
-```{r assoc-diagnostics, message=FALSE, warning=FALSE}
-unmapped <- acs_zcta_hennepin %>%
-  dplyr::anti_join(zcta_zip_hennepin %>% dplyr::distinct(.data$zcta), by = "zcta")
+audit_transform(acs, "zcta", "pop", steps)
 
-fanout_stats <- zcta_zip_hennepin %>%
-  dplyr::count(.data$zcta, name = "n_zip") %>%
+# Diagnostics from the pipeline
+result$diag
+
+# --- association diagnostics (sanity check) ---
+unmapped_n <- acs |>
+  dplyr::distinct(.data$zcta) |>
+  dplyr::anti_join(assoc |> dplyr::distinct(.data$zcta), by = "zcta") |>
+  nrow()
+
+fanout_stats <- assoc |>
+  dplyr::count(.data$zcta, name = "n_zip") |>
   dplyr::summarise(
     min    = min(.data$n_zip),
     median = median(.data$n_zip),
@@ -65,17 +65,16 @@ fanout_stats <- zcta_zip_hennepin %>%
   )
 
 list(
-  n_unmapped_zctas = nrow(unmapped),
+  n_unmapped_zctas = unmapped_n,
   fanout = fanout_stats
 )
-```
 
-```{r hennepin-pngs, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
+# --- Hennepin membership visuals (pre-generated; vignette only displays) ---
+# These files must exist in vignettes/ for the vignette to render.
 knitr::include_graphics(c(
   "baseline_hennepin.png",
   "hennepin_relationship.png"
 ))
-```
 
 ## What this vignette demonstrates
 
