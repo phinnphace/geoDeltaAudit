@@ -16,6 +16,12 @@ knitr::opts_chunk$set(
 
 # Geographic Data Transformation Auditing: Why Variable Agnosticism Matters
 
+## Assumptions
+
+Before proceeding with an audit, this package assumes:
+1. The user is coming in with an authoritative crosswalk file and demographic tabular data ready to merge.
+2. A basic understanding of why spatial allocation is necessary in their workflow.
+
 ## The Problem in Population Health
 - Current practice treats crosswalks as neutral operations
 - No systematic assessment of data perturbation across boundaries

@@ -7,6 +7,9 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+## A Note on Agnosticism
+While this walkthrough uses Hennepin County and population data as a tangible case study to ground the math, the entire point of this package is to provide a **variable-agnostic** and **tool-agnostic** calculator for analysts. The column names (e.g., "pop", "zcta") and geographies are completely interchangeable for any analysis.
+
 ## --- vignette-only dependency (Suggests) ---
 if (!requireNamespace("readr", quietly = TRUE)) {
   stop("Package 'readr' is required to run this vignette. Install it with install.packages('readr').")
