@@ -51,3 +51,7 @@ Because st_intersects() is doing a literal spatial test:
 - Works with any continuous/categorical variable
 - Framework applicable beyond R ecosystem
 - Preserves analytical agency at each step
+
+## Next Steps
+
+The next vignette, aptly named "Audit walkthrough", is designed to demonstrate a real-world example. The case is a salient one for 2025/2026: Hennepin County, MN. The variable of interest, total population (`TOT_POP`), is selected for its ease of communication.
