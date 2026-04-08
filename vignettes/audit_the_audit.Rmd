@@ -1,0 +1,273 @@
+---
+title: "Audit the Audit"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Audit the Audit}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  eval    = FALSE
+)
+```
+
+## What This Vignette Is
+
+A framework that only ever shows perturbation is not a framework — it is a result
+generator. This vignette applies the same audit logic to a second crosswalk and reports
+the result honestly: Δ*X* = 0.
+
+The case is Census Tract 1016, Hennepin County, Minnesota. The crosswalk is the IPUMS
+NHGIS 2010 Blocks to 2020 Census Tracts interpolation file for Minnesota
+(`nhgis_blk2010_tr2020_27`). The variable is total population, ACS 2019–2023 5-year
+estimates at the block group level.
+
+The zero result is the point. It demonstrates that the math is correct, that crosswalk
+fit to geography determines the outcome, and that this framework reports honestly when
+the answer is zero.
+
+---
+
+## Crosswalk Selection and Rationale
+
+IPUMS NHGIS recommends constructing geographic crosswalks from the lowest available
+census geography to minimize interpolation error when transforming summary data between
+boundary systems. The appropriate source level depends on the data instrument:
+
+- **Decennial census (short-form):** blocks
+- **Long-form 1990–2000 census:** block group parts
+- **ACS 5-year estimates:** block groups
+- **When lower levels are unavailable:** census tracts
+
+The demonstration variable here is total population from ACS 5-year estimates. The
+correct NHGIS pathway is therefore a block-group-level crosswalk. The file selected —
+`nhgis_blk2010_tr2020_27` — maps 2010 Census blocks to 2020 Census tracts for
+Minnesota, with allocation weights derived from block-level interpolation. Block group
+weights are aggregated from block-level weights and normalized prior to use.
+
+The crosswalk file can be downloaded from:
+<https://www.nhgis.org/geographic-crosswalks>
+
+A note on directionality: geographic crosswalks are not invertible. The block-to-tract
+crosswalk used here allocates data from block geographies to tract geographies. It
+cannot be reversed to allocate tract data back to blocks. The audit treats each
+transformation as a one-way operation and records perturbation at each step
+accordingly.
+
+**Data citation:**
+Jonathan Schroeder, David Van Riper, Steven Manson, Katherine Knowles, Tracy Kugler,
+Finn Roberts, and Steven Ruggles. IPUMS National Historical Geographic Information
+System: Version 20.0 [dataset]. Minneapolis, MN: IPUMS. 2025.
+<http://doi.org/10.18128/D050.V20.0>
+
+---
+
+## A Note on IPUMS NHGIS
+
+IPUMS NHGIS applies its allocation logic rigorously and documents it carefully. That
+internal consistency is genuinely valuable. It is not the same as epistemic
+completeness. The assumptions encoded in the NHGIS crosswalk are better labeled than
+most — they are not absent. A well-documented crosswalk that is mismatched to the
+analytic context will still perturb the variable.
+
+This vignette does not argue that NHGIS resolves the problem the shellgame framework
+describes. It uses NHGIS as a methodologically disciplined reference case to demonstrate
+that the audit framework measures correctly in both directions.
+
+---
+
+## 1. Libraries
+
+```{r libs}
+library(dplyr)
+library(readr)
+library(tidycensus)
+```
+
+---
+
+## 2. Configuration
+
+```{r config}
+# --- swap these values for your own target geography ---
+TARGET_TRACT_GEOID <- "27053101600"  # Census Tract 1016, Hennepin County, MN
+TARGET_COUNTY      <- "053"          # Hennepin County FIPS
+TARGET_STATE       <- "27"           # Minnesota FIPS
+
+# --- swap this path for your downloaded NHGIS crosswalk file ---
+# Download: https://www.nhgis.org/geographic-crosswalks
+# Select: 2010 Blocks -> 2020 Census Tracts, filter to your state
+CROSSWALK_PATH <- "path/to/nhgis_blk2010_tr2020_[state].csv"
+
+# Census API key — set once via tidycensus::census_api_key("YOUR_KEY", install = TRUE)
+# Loads automatically from .Renviron in subsequent sessions
+```
+
+---
+
+## 3. Load and Prepare the NHGIS Crosswalk
+
+The NHGIS file provides block-level weights. Because ACS data are available at the
+block group level rather than the block level, the crosswalk must first be aggregated
+to block group. Weights are normalized by the total number of blocks in each block
+group to produce a weight between 0 and 1.
+
+```{r load-crosswalk}
+crosswalk_raw <- readr::read_csv(CROSSWALK_PATH, show_col_types = FALSE)
+
+# Extract block group GEOID from block GEOID (first 12 characters)
+crosswalk_with_bg <- crosswalk_raw |>
+  dplyr::mutate(
+    bg2010ge = as.character(substr(as.character(blk2010ge), 1, 12)),
+    tr2020ge = as.character(tr2020ge)
+  )
+
+# Total blocks per block group — denominator for normalization
+bg_totals <- crosswalk_with_bg |>
+  dplyr::group_by(bg2010ge) |>
+  dplyr::summarise(total_blocks_in_bg = dplyr::n(), .groups = "drop")
+
+# Aggregate to block group -> tract pairs and normalize weights
+crosswalk_bg <- crosswalk_with_bg |>
+  dplyr::group_by(bg2010ge, tr2020ge) |>
+  dplyr::summarise(
+    sum_weights       = sum(weight, na.rm = TRUE),
+    n_blocks_to_tract = dplyr::n(),
+    .groups = "drop"
+  ) |>
+  dplyr::left_join(bg_totals, by = "bg2010ge") |>
+  dplyr::mutate(
+    wt_pop = sum_weights / total_blocks_in_bg  # normalized weight
+  )
+```
+
+---
+
+## 4. Filter to Target Tract
+
+```{r filter-tract}
+bgs_in_tract <- crosswalk_bg |>
+  dplyr::filter(tr2020ge == TARGET_TRACT_GEOID) |>
+  dplyr::arrange(dplyr::desc(wt_pop))
+```
+
+---
+
+## 5. Retrieve ACS Block Group Data
+
+```{r acs-data}
+acs_bg_raw <- tidycensus::get_acs(
+  geography = "block group",
+  variables = "B01001_001",  # total population; swap for your variable
+  state     = TARGET_STATE,
+  county    = TARGET_COUNTY,
+  year      = 2023,          # 2019-2023 5-year estimates
+  survey    = "acs5",
+  geometry  = FALSE
+)
+
+acs_bg <- acs_bg_raw |>
+  dplyr::select(bg2010ge = GEOID, TOTPOP = estimate, TOTPOP_moe = moe)
+```
+
+---
+
+## 6. Join and Apply Crosswalk Weights
+
+```{r apply-weights}
+analysis_data <- bgs_in_tract |>
+  dplyr::left_join(acs_bg, by = "bg2010ge")
+
+results <- analysis_data |>
+  dplyr::filter(!is.na(TOTPOP)) |>
+  dplyr::mutate(
+    weighted_pop  = TOTPOP * wt_pop,
+    weighted_moe  = TOTPOP_moe * wt_pop,
+    pct_allocated = wt_pop * 100
+  )
+
+crosswalked_totpop <- sum(results$weighted_pop, na.rm = TRUE)
+crosswalked_moe    <- sqrt(sum(results$weighted_moe^2, na.rm = TRUE))
+original_bg_totpop <- sum(results$TOTPOP, na.rm = TRUE)
+difference         <- crosswalked_totpop - original_bg_totpop
+pct_difference     <- (difference / original_bg_totpop) * 100
+```
+
+---
+
+## 7. Results
+
+All three block groups in Tract 1016 have `wt_pop = 1.0`. Every block in each group
+maps entirely into the tract with no fragmentation across boundaries. The variable
+survived the transformation unchanged.
+
+**Block group detail:**
+
+| Block Group  | Weight | TOTPOP    | Weighted Pop | % Allocated |
+|--------------|--------|-----------|--------------|-------------|
+| 270531016001 | 1.0000 | 316       | 316          | 100.0%      |
+| 270531016002 | 1.0000 | 945       | 945          | 100.0%      |
+| 270531016003 | 1.0000 | 0         | 0            | 100.0%      |
+| **TOTAL**    |        | **1,261** | **1,261**    |             |
+
+**Summary:**
+
+| Metric                  | Value                                             |
+|-------------------------|---------------------------------------------------|
+| Tract                   | Census Tract 1016, Hennepin County, MN            |
+| ACS period              | 2019–2023                                         |
+| Block groups            | 3                                                 |
+| Crosswalk               | IPUMS NHGIS 2010 Blocks → 2020 Tracts (MN)       |
+| Methodology             | Block-level weights aggregated to BG, normalized  |
+| Original BG total       | 1,261 ± 439 (MOE)                                 |
+| Crosswalked tract total | 1,261 ± 439 (MOE)                                 |
+| Difference              | 0                                                 |
+| Δ*X*(population)        | **0.00%**                                         |
+
+---
+
+## 8. What the Zero Result Means
+
+Δ*X* = 0 means the variable survived this transformation unchanged. It does not mean:
+
+- The crosswalk is correct for all use cases
+- The allocation assumptions have been externally validated
+- This crosswalk is appropriate for non-population variables — a crosswalk calibrated
+  around block-level population geometry encodes assumptions that may not transfer to
+  income, employment, housing, or other analytic contexts
+- Zero perturbation is the target or the ideal
+
+What the zero result does establish:
+
+- The audit math is correct — when there is nothing to measure, it returns zero
+- Crosswalk fit to geography determines the outcome; Tract 1016 has minimal boundary
+  fragmentation and the NHGIS weights reflect that geometry cleanly
+- The framework is not designed to find perturbation — it is designed to measure
+  whatever is there and report it honestly
+
+A non-zero result from a different crosswalk or a different geography is not a failure
+of either crosswalk. It is a measurement. The question the audit answers is not "which
+crosswalk is right" — it is "what does this crosswalk do to this variable in this
+geography."
+
+---
+
+## What This Demonstrates
+
+The same framework, a different crosswalk, a well-matched geography: Δ*X* = 0.
+
+The Hennepin/HUD case returned −12.6%. This case returns 0.0%. Both results are
+correct. The difference is a property of the crosswalk's fit to the geography and the
+allocation assumptions it encodes — not a property of the framework, the variable, or
+the analyst running it.
+
+For the conceptual argument behind what these results mean, see
+`vignette("conceptual_framework", package = "shellgame")`.
+
+For the Hennepin County demonstration, see
+`vignette("audit_walkthrough", package = "geoDeltaAudit")`.

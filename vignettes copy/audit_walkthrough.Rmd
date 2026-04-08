@@ -1,0 +1,88 @@
+---
+title: "Audit walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Audit walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Picking up from the Introduction: A Note on Agnosticism
+As mentioned in the previous vignette, this walkthrough uses Hennepin County and population data as a tangible case study to ground the math. However, the entire point of this package is to provide a **variable-agnostic** and **tool-agnostic** calculator for analysts. The column names (e.g., "pop", "zcta") and geographies are completely interchangeable for any analysis.
+
+## --- vignette-only dependency (Suggests) ---
+if (!requireNamespace("readr", quietly = TRUE)) {
+  stop("Package 'readr' is required to run this vignette. Install it with install.packages('readr').")
+}
+
+# --- libraries ---
+library(geoDeltaAudit)
+library(dplyr)
+library(stringr)
+library(janitor)
+
+# --- toy baseline (ZCTA-level pop) ---
+acs_path <- system.file("extdata", "toy_acs_zcta_hennepin.csv", package = "geoDeltaAudit")
+stopifnot(nchar(acs_path) > 0)
+
+acs <- readr::read_csv(acs_path, show_col_types = FALSE) |>
+  janitor::clean_names() |>
+  dplyr::mutate(zcta = stringr::str_pad(as.character(.data$zcta), 5, pad = "0"))
+
+# --- toy assoc: 1:1 (ZCTA -> ZIP) ---
+assoc <- acs |>
+  dplyr::distinct(.data$zcta) |>
+  dplyr::transmute(zcta = .data$zcta, zip = .data$zcta) |>
+  dplyr::distinct()
+
+# --- toy HUD ZIP -> county weights (TOT_RATIO) ---
+hud_path <- system.file("extdata", "toy_zip_county_hud_hennepin.csv", package = "geoDeltaAudit")
+stopifnot(nchar(hud_path) > 0)
+
+hud <- readr::read_csv(hud_path, show_col_types = FALSE)
+
+# --- build steps + run audit ---
+steps <- list(
+  step_zcta_to_zip_equal(assoc),
+  step_zip_to_county_totratio(hud)
+)
+
+audit_transform(acs, "zcta", "pop", steps)
+
+# Diagnostics from the pipeline
+result$diag
+
+# --- association diagnostics (sanity check) ---
+unmapped_n <- acs |>
+  dplyr::distinct(.data$zcta) |>
+  dplyr::anti_join(assoc |> dplyr::distinct(.data$zcta), by = "zcta") |>
+  nrow()
+
+fanout_stats <- assoc |>
+  dplyr::count(.data$zcta, name = "n_zip") |>
+  dplyr::summarise(
+    min    = min(.data$n_zip),
+    median = median(.data$n_zip),
+    mean   = mean(.data$n_zip),
+    max    = max(.data$n_zip)
+  )
+
+list(
+  n_unmapped_zctas = unmapped_n,
+  fanout = fanout_stats
+)
+
+# --- Hennepin membership visuals (pre-generated; vignette only displays) ---
+# These files must exist in vignettes/ for the vignette to render.
+knitr::include_graphics(c(
+  "baseline_hennepin.png",
+  "hennepin_relationship.png"
+))
+
+## What this vignette demonstrates
+
+This vignette shows how `geoDeltaAudit` separates **data values** from **geographic transformation rules**.
+
+The maps above visualize how identical source values can yield different spatial memberships depending on whether boundaries are defined by relationships or geometry. The numerical audit steps in other vignettes quantify the downstream effects of these choices.
+
+This vignette is intentionally visual and descriptive. It does not perform transformations or inference.

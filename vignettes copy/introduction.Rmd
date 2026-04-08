@@ -1,0 +1,57 @@
+---
+title: "introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+
+# Geographic Data Transformation Auditing: Why Variable Agnosticism Matters
+
+## Assumptions
+
+Before proceeding with an audit, this package assumes:
+1. The user is coming in with an authoritative crosswalk file and demographic tabular data ready to merge.
+2. A basic understanding of why spatial allocation is necessary in their workflow.
+
+## The Problem in Population Health
+- Current practice treats crosswalks as neutral operations
+- No systematic assessment of data perturbation across boundaries
+- Equity implications of transformation choices ignored
+No authoritative ZCTA→ZIP crosswalk is published. For the first hop, we construct a ZCTA–ZIP association table by expanding the ZIP→ZCTA relationship file (i.e., grouping ZIPs by their assigned ZCTA). This produces a one-to-many mapping (ZCTA→{ZIPs}) that reflects common “lookup-style” workflows in applied settings.
+
+This construction does not imply bidirectionality (it is not a valid inverse crosswalk) and does not encode proportional allocation. It is used solely to quantify how a typical boundary-translation workflow can alter aggregate estimates under an explicit allocation rule.
+
+
+## Decision Points Framework
+- **Decision Point 1**: Step 0. Define baseline (relationship-defined ZCTA membership)
+We define “in-county” membership using a relationship-based ZCTA set. This is distinct from geometric intersection membership and is held constant for the audit. TOT_RATIO is defined per ZIP across counties, the sum of ratios within a single county is not constrained to equal the number of ZCTAs or ZIPs, and may exceed or fall below intuitive counts.While obvious, the ratio is the held constant as it is what carries throughout the rest of the transformations because of the crosswalk decision.  
+
+- **Decision Point 2**: Are we defining membership by administrative linkage, or by geometric contact?
+We need ZIP-level population only because HUD operates at ZIP.
+Rule (explicitly stated)
+Within a ZCTA, population is evenly attributed across associated ZIPs.
+This is not claimed as correct, only as necessary to proceed.
+
+Because st_intersects() is doing a literal spatial test:
+•	If a ZCTA polygon touches Hennepin even a little, it counts.
+•	That includes edge-touching, slivers, water boundaries, and weird TIGER topology.
+•	The “relationship file” is not the same thing. It’s a curated linkage that reflects Census tabulation logic, not raw polygon contact.
+
+
+## Variable Agnosticism Design
+- Works with any continuous/categorical variable
+- Framework applicable beyond R ecosystem
+- Preserves analytical agency at each step
+
+## Next Steps
+
+The next vignette, aptly named "Audit walkthrough", is designed to demonstrate a real-world example. The case is a salient one for 2025/2026: Hennepin County, MN. The variable of interest, total population (`TOT_POP`), is selected for its ease of communication.
