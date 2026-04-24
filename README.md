@@ -52,3 +52,5 @@ due to boundary translation + allocation rules (pathway dependence).
 
 \`\`\`r install.packages(“remotes”)
 remotes::install_github(“phinnphace/geoDeltaAudit”)
+
+[![DOI](https://zenodo.org/badge/1146889751.svg)](https://doi.org/10.5281/zenodo.18634442)
