@@ -13,6 +13,8 @@ Description:
     source, variable type, and administrative geography, and is designed to
     quantify transformation-induced change without attributing blame to any
     specific boundary definition or allocation scheme.
+Depends:
+    R (>= 4.1.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
