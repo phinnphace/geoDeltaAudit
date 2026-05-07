@@ -2,7 +2,7 @@
 #'
 #' testthat::skip("Integration test: run manually (slow / uses real data).")
 
-#' Computes Δx(VAR) between a baseline and a transformed result while returning diagnostics.
+#' Computes delta_x(VAR) between a baseline and a transformed result while returning diagnostics.
 #'
 #' @param df Input data frame.
 #' @param geo_col Column containing geography IDs.

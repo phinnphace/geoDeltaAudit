@@ -31,5 +31,5 @@ An object of class \code{audit_result}.
 }
 \description{
 testthat::skip("Integration test: run manually (slow / uses real data).")
-Computes Δx(VAR) between a baseline and a transformed result while returning diagnostics.
+Computes delta_x(VAR) between a baseline and a transformed result while returning diagnostics.
 }
