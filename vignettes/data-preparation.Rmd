@@ -1,0 +1,194 @@
+---
+title: "data-preparation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data Preperation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>"
+)
+```
+
+# Overview
+
+This vignette shows you how to prepare the data needed to run a transformation audit with `shellgame`.
+
+You need three things:
+
+1. **Baseline data** - ACS estimates at ZCTA level
+2. **ZIP-ZCTA crosswalk** - Association between ZIPs and ZCTAs
+3. **HUD crosswalk** - ZIP to County allocation ratios
+
+# 1. Get a Census API Key
+
+```{r eval=FALSE}
+# Get your free key at: https://api.census.gov/data/key_signup.html
+# Then install it:
+tidycensus::census_api_key("YOUR_KEY_HERE", install = TRUE)
+```
+
+# 2. Identify Your ZCTAs
+
+Use the `zctaCrosswalk` package to find ZCTAs for your county:
+
+```{r eval=FALSE}
+library(zctaCrosswalk)
+
+# Replace with your county FIPS code
+zctas <- get_zctas_by_county("27053") # Hennepin County, MN
+```
+
+# 3. Get Baseline ACS Data
+
+```{r eval=FALSE}
+library(geoDeltaAudit)
+
+# Get total population (B01001_001)
+baseline_data <- get_zcta_baseline(
+    variable = "B01001_001",
+    year = 2022,
+    zctas = zctas
+)
+
+# Or try other variables:
+# B19013_001 - Median household income
+# B25001_001 - Total housing units
+# B08201_001 - Households by vehicles available
+```
+
+# 4. Get ZIP-ZCTA Crosswalk
+
+ # https://github.com/chris-prener/uds-mapper
+
+```{r eval=FALSE}
+# Read the file
+zip_zcta_raw <- read.csv("ZiptoZCTA-Table 1.csv")
+
+# Clean and standardize
+zip_zcta <- prep_zip_zcta(zip_zcta_raw)
+```
+
+**What this does:**
+- Standardizes column names
+- Pads GEOIDs to 5 digits
+- Removes duplicates and NAs
+
+# 5. Get HUD Crosswalk
+
+Download from: https://www.huduser.gov/portal/datasets/usps_crosswalk.html
+
+Select the most recent quarter (e.g., Q4 2024).
+
+```{r eval=FALSE}
+# Read the file
+hud_raw <- read.csv("ZIP_COUNTY_122024.csv")
+
+# Clean and standardize
+hud <- prep_hud_crosswalk(hud_raw)
+
+# Optional: use different ratio
+hud_res <- prep_hud_crosswalk(hud_raw, ratio_col = "RES_RATIO")
+```
+
+**Available ratios:**
+- `TOT_RATIO` - Total addresses (default)
+- `RES_RATIO` - Residential addresses only
+- `BUS_RATIO` - Business addresses only
+- `OTH_RATIO` - Other addresses
+
+**This is Decision #2**: Which ratio you choose affects your results.
+
+# 6. Run the Audit
+
+```{r eval=FALSE}
+result <- audit_transformation(
+    baseline_data = baseline_data,
+    zip_zcta_map = zip_zcta,
+    hud_crosswalk = hud,
+    county_fips = "27053",
+    variable_name = "population",
+    value_col = "estimate"
+)
+
+summary(result)
+```
+
+# Copy-Paste Ready Code
+
+Here's the complete workflow in one block:
+
+```{r eval=FALSE}
+library(geoDeltaAudit)
+library(zctaCrosswalk)
+library(tidycensus)
+
+# Set your Census API key (one time)
+census_api_key("YOUR_KEY_HERE", install = TRUE)
+
+# 1. Identify ZCTAs for your county
+zctas <- get_zctas_by_county("YOUR_COUNTY_FIPS")
+
+# 2. Get baseline data
+baseline_data <- get_zcta_baseline(
+    variable = "B01001_001", # Total population
+    year = 2022,
+    zctas = zctas
+)
+
+# 3. Prepare crosswalks
+zip_zcta <- prep_zip_zcta(read.csv("path/to/ZiptoZCTA.csv"))
+hud <- prep_hud_crosswalk(read.csv("path/to/ZIP_COUNTY.csv"))
+
+# 4. Run audit
+result <- audit_transformation(
+    baseline_data = baseline_data,
+    zip_zcta_map = zip_zcta,
+    hud_crosswalk = hud,
+    county_fips = "YOUR_COUNTY_FIPS",
+    variable_name = "population"
+)
+
+# 5. View results
+summary(result)
+plot_transformation_perturbation(result)
+```
+
+# Data Structure Requirements
+
+## Baseline Data
+
+Must have columns:
+- `zcta` - 5-digit ZCTA code
+- `estimate` (or your specified value column) - Numeric value
+
+## ZIP-ZCTA Crosswalk
+
+Must have columns:
+- `ZIP_CODE` or `zip` - ZIP code
+- `zcta` - ZCTA code
+
+## HUD Crosswalk
+
+Must have columns:
+- `ZIP` - ZIP code
+- `COUNTY` - County FIPS code
+- `TOT_RATIO` (or other ratio) - Allocation ratio
+
+# Validation
+
+The `prep_*` functions will validate your data and provide helpful error messages if something is wrong.
+
+```{r eval=FALSE}
+# Example error:
+# Error: ZIP-ZCTA crosswalk is missing required columns: zcta
+```
+
+# Next Steps
+
+- See `vignette("hennepin-example")` for a complete worked example
+- See `vignette("conceptual_framework_shellgame", package = "shellgame")` for the conceptual explanation

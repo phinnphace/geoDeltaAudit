@@ -1,35 +1,33 @@
 Package: geoDeltaAudit
-Title: Quantifying Variable Change Induced by Administrative Boundary Transformations
+Title: Quantifying Variable Change Induced by Administrative Boundary
+    Transformations
 Version: 0.1.0
 Authors@R:
-    person(
-      "Phinn", "Markson",
-      email = "markson.2@osu.edu",
-      role = c("aut", "cre")
-    )
-Description:
-    Tools for auditing how analytic variables change when data are transformed
-    across administrative boundary systems. The package is agnostic to data
-    source, variable type, and administrative geography, and is designed to
-    quantify transformation-induced change without attributing blame to any
-    specific boundary definition or allocation scheme.
+    person("Phinn", "Markson", , "markson.2@osu.edu", role = c("aut", "cre"))
+Description:Tools for auditing how analytic variables change when data
+    are transformed across administrative boundary systems. The package is
+    agnostic to data source, variable type, and administrative geography,
+    and is designed to quantify transformation-induced change without
+    attributing blame to any specific boundary definition or allocation
+    scheme.
+License: MIT + file LICENSE
+URL: https://github.com/phinnphace/geoDeltaAudit
+BugReports: https://github.com/phinnphace/geoDeltaAudit/issues
 Depends:
     R (>= 4.1.0)
-License: MIT + file LICENSE
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Imports: 
     dplyr,
     janitor,
     rlang,
     stringr,
-    tibble
+    tibble,
 Suggests: 
     knitr,
     readr,
     rmarkdown,
     testthat (>= 3.0.0)
-VignetteBuilder: knitr
-URL: https://github.com/phinnphace/geoDeltaAudit
-BugReports: https://github.com/phinnphace/geoDeltaAudit/issues
+VignetteBuilder: 
+    knitr
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3

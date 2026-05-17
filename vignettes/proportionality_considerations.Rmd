@@ -1,5 +1,5 @@
 ---
-title: "proportionaility"
+title: "proportionality-considerations"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Proportionality considerations}

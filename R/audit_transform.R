@@ -11,7 +11,7 @@
 #' @param baseline_filter Optional function(df) -> filtered df defining baseline membership.
 #' @param target_id Optional target ID to extract after final step (e.g., "27053").
 #' @return An object of class `audit_result`.
-#' @export
+#' @export plots$perturbation 
 audit_transform <- function(df, geo_col, var_col, steps, baseline_filter = NULL, target_id = NULL) {
 
   if (!is.null(baseline_filter)) {

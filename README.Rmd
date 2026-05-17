@@ -15,48 +15,58 @@ knitr::opts_chunk$set(
 
 # geoDeltaAudit
 
-Geographic crosswalks are directional allocations, not inverses.  
-`geoDeltaAudit` helps quantify how much a variable changes *purely* due to boundary translation and allocation rules (pathway dependence).
+[![CRAN status](https://www.r-pkg.org/badges/version/geoDeltaAudit)](https://CRAN.R-project.org/package=geoDeltaAudit)
+[![DOI](https://zenodo.org/badge/1146889751.svg)](https://doi.org/10.5281/zenodo.18634442)
 
-## What it does
+Applied researchers routinely integrate data across geographic boundaries using crosswalks, allocation rules, and lookup tables. A researcher might begin with county-level health outcomes, merge in ZIP-code-level socioeconomic covariates, then aggregate to a metropolitan statistical area for policy analysis. Each merge requires a crosswalk—ZCTA to ZIP, ZIP to county, county to MSA—tools that promise seamless integration while obscuring the decisions embedded within them. The analyst selects a crosswalk, applies it, and proceeds with analysis, often without knowledge of what allocation methods governed the transformation.
 
-- Defines step functions for common geographic transformations (e.g., ZCTA → ZIP → county)
-- Runs an audit pipeline that reports:
-  - fan-out and loss at each step
-  - unmapped or duplicated units
-  - Δx(VAR): change induced solely by transformation choices, holding the source constant
+
+The transformation from ZCTA to ZIP to county exemplifies this pattern. ZCTAs are Census-defined geographic approximations of U.S. Postal Service ZIP codes, designed for statistical tabulation. Yet the relationship between ZCTAs and ZIP codes is neither one-to-one nor static: a single ZCTA may encompass multiple ZIP codes, and ZIP boundaries shift over time in response to postal operational needs.The column name remains unchanged, but the values now represent estimates derived through allocation rules rather than direct observation. Assumptions, unlike data, do not decay; they accumulate. Each successive transformation compounds the distance between the analyst and the original measurement.
+
+`geoDeltaAudit` is the operationalized implementation of the [`shellgame`](https://CRAN.R-project.org/package=shellgame) framework in R. It is not about correcting geographies or harmonizing boundaries — it is about quantifying how crosswalk-based spatial decisions alter the analytic variables researchers depend upon.
+
+## The Pipeline
+
+The transformation pipeline consists of sequential "hops," with perturbation recorded at each step.
+
+**Hop 1: ZCTA → ZIP.** Baseline ZCTA-level data are joined to a ZIP-ZCTA association table. Where a single ZCTA maps to multiple ZIP codes, the ZCTA value is allocated equally across associated ZIPs using equal-share allocation. This stage captures pre-allocation expansion: the increase in spatial units representing the geography prior to any weighting. The analyst is no longer working with the original statistical units; the analytical surface has already shifted.
+
+**Hop 2: ZIP → County.** ZIP-level allocated values are joined to the HUD ZIP-County crosswalk and weighted by TOT_RATIO (or alternative ratio). Values are summed to the county level, with optional filtering to a target county. The TOT_RATIO represents the proportion of addresses in a ZIP code that fall within a given county, based on USPS address data. This second hop introduces additional perturbation as values are redistributed across county boundaries.
+
+The pipeline returns an object of class `shellgame_audit` containing: baseline and recovered totals; absolute and percentage perturbation; unit counts at each stage; pre-allocation expansion percentage; and a data frame of values redistributed to neighboring counties. Geographic crosswalks are treated as directional allocations rather than invertible transformations, ensuring that each hop is audited as a one-way operation with explicit reporting of perturbation and fan-out at each stage. A ZCTA-to-ZIP crosswalk cannot be reversed to create a valid ZIP-to-ZCTA crosswalk, and the audit respects this asymmetry.
 
 ## Installation
 
 ```r
-install.packages("remotes")
-remotes::install_github("phinnphace/geoDeltaAudit")
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
-library(geoDeltaAudit)
-## basic example code
+install.packages("geoDeltaAudit")
 ```
 
-# geoDeltaAudit
+## Getting Started
 
-Geographic crosswalks are directional allocations, not inverses. `geoDeltaAudit` helps you quantify how much a variable changes purely due to boundary translation + allocation rules (pathway dependence).
+See the [`shellgame`](https://CRAN.R-project.org/package=shellgame) package for a complete worked example including data preparation (`vignette("data-preparation")`), pipeline execution, and visualizations using pre-loaded Hennepin County data.
 
-## What it does
+## Equity Implications
 
-- Defines step functions for common transformations (e.g., ZCTA → ZIP, ZIP → county)
-- Runs an audit pipeline that reports:
-  - fan-out / loss at each step
-  - unmapped units
-  - Δx(VAR): change induced solely by transformation choices (holding the underlying source constant)
+The consequences of unquantified transformation perturbation are not distributed equally across communities. Communities located near administrative boundaries are systematically under- or over-represented depending on membership definitions. Small populations, including many racially and ethnically minoritized communities, are disproportionately affected by allocation assumptions that smooth heterogeneous distributions into uniform proxies. Historical undercounting in administrative data is amplified through successive transformations that treat imputed values as empirical measurements.
 
+`geoDeltaAudit` makes the magnitude and geography of that compounding visible.
 
-## Install
+## Related Package
+
+[`shellgame`](https://CRAN.R-project.org/package=shellgame) demonstrates these dynamics concretely using ACS population data for Hennepin County, Minnesota, with pre-loaded example datasets and publication-ready visualizations.
 
 ```r
-install.packages("remotes")
-remotes::install_github("phinnphace/geoDeltaAudit")
+install.packages(c("geoDeltaAudit", "shellgame"))
+```
 
-[![DOI](https://zenodo.org/badge/1146889751.svg)](https://doi.org/10.5281/zenodo.18634442)
+## Citation
+
+```
+Markson, P. (2026). geoDeltaAudit: Quantifying Variable Change Induced by
+  Administrative Boundary Transformations. R package version 0.1.1.
+  https://CRAN.R-project.org/package=geoDeltaAudit
+```
+
+## License
+
+MIT © Phinn Markson
