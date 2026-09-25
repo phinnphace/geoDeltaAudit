@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 
 # Geographic Data Transformation Auditing: Why Variable Agnosticism Matters
 
-## The Problem in Population Health
+## The Problem in Population Analysis
 - Current practice treats crosswalks as neutral operations
 - No systematic assessment of data perturbation across boundaries
 - Equity implications of transformation choices ignored
@@ -29,7 +29,7 @@ This construction does not imply bidirectionality (it is not a valid inverse cro
 
 ## Decision Points Framework
 - **Decision Point 1**: Step 0. Define baseline (relationship-defined ZCTA membership)
-We define “in-county” membership using a relationship-based ZCTA set. This is distinct from geometric intersection membership and is held constant for the audit. TOT_RATIO is defined per ZIP across counties, the sum of ratios within a single county is not constrained to equal the number of ZCTAs or ZIPs, and may exceed or fall below intuitive counts. While obvious, the ratio is the held constant as it is what carries throughout the rest of the transformations because of the crosswalk decision.  
+We define “in-county” membership using a relationship-based ZCTA set. This is distinct from geometric intersection membership and is held constant for the audit. TOT_RATIO is defined per ZIP across counties; the sum of ratios within a single county is not constrained to equal the number of ZCTAs or ZIPs, and may exceed or fall below intuitive counts. While obvious, the ratio is held constant as it is what carries through the rest of the transformations because of the crosswalk decision.  
 
 - **Decision Point 2**: Are we defining membership by administrative linkage, or by geometric contact?
 We need ZIP-level population only because HUD operates at ZIP.
