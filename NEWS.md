@@ -15,3 +15,4 @@
   proportionality considerations.
 * Includes Hennepin County toy datasets in `inst/extdata` for running examples
   without external data dependencies.
+  * Vignette: perturbation notation corrected to ΔX; pathway dependence and sensitivity formalized v.0.1.1
