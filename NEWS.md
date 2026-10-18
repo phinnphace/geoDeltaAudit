@@ -1,3 +1,9 @@
+# geoDeltaAudit 0.1.1
+
+* Added a data-preparation vignette and updated the README to link to it.
+* Clarified transformation decision points and proportionality considerations
+  in the vignettes, including perturbation notation and pathway dependence.
+
 # geoDeltaAudit 0.1.0
 
 ## Initial release
@@ -15,4 +21,3 @@
   proportionality considerations.
 * Includes Hennepin County toy datasets in `inst/extdata` for running examples
   without external data dependencies.
-  * Vignette: perturbation notation corrected to ΔX; pathway dependence and sensitivity formalized v.0.1.1
