@@ -1,7 +1,7 @@
 Package: geoDeltaAudit
 Title: Quantifying Variable Change Induced by Administrative Boundary
     Transformations
-Version: 0.1.0
+Version: 0.1.1
 Authors@R:
     person("Phinn", "Markson", , "markson.2@osu.edu", role = c("aut", "cre"))
 Description:Tools for auditing how analytic variables change when data
